@@ -1,0 +1,20 @@
+version: '3'
+# ./docker-compose.yaml
+services:
+  backend:
+    # 이미지 생성을 위해 해당 디렉토리에 있는 Dockerfile를 build한다.
+    # docker-compose파일에 같은경로로 Dockerfile이 있을시 '.' 을 찍으면 된다.
+    # 같은경로가 아닐시 상대경로로 지정해서 실행한다.
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - '4001:3000'
+    volumn:
+      - ./uploads:/nestjs/uploads
+    #개발용이기 때문에 코드수정이 있으면 컨테이너에서도 반영
+    logging:
+      driver: 'json-file'
+      options:
+        max-file: '3'
+        max-size: '10m'
