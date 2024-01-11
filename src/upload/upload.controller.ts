@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import * as crypto from 'crypto';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { UploadService } from './upload.service';
@@ -42,8 +43,13 @@ export class UploadController {
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           const originalName = file.originalname.replace(/\s/g, ''); // 공백 제거
           const extension = extname(originalName);
-          const fileName = `${originalName}-${uniqueSuffix}${extension}`;
-          callback(null, fileName);
+          const fileNameWithoutExtension = sanitizeFilename(
+            originalName.split('.')[0],
+          );
+          const fileName = `${fileNameWithoutExtension}-${uniqueSuffix}${extension}`;
+          const decodedFileName = decodeURIComponent(fileName);
+          // const encodedFileName = encodeURIComponent(fileName); // 한글이름도 안전하게 인코딩
+          callback(null, decodedFileName);
         },
       }),
     }),
@@ -51,4 +57,10 @@ export class UploadController {
   downloadFile(@UploadedFile('file') file) {
     return file;
   }
+}
+
+function sanitizeFilename(filename: string): string {
+  const hash = crypto.createHash('md5').update(filename).digest('hex');
+  const sanitizedFilename = hash + '_' + filename;
+  return sanitizedFilename;
 }
